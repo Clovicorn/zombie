@@ -1,7 +1,4 @@
-#include <SFML/Graphics.hpp>
-#include "player.h"
-
-using namespace sf;
+#include "zombie.h"
 
 int main(void)
 {
@@ -29,12 +26,16 @@ int main(void)
     Vector2i mouseScreenPosition;
 
     IntRect arena;
+    VertexArray background;
+    Texture texBackground;
+    texBackground.loadFromFile("assets/graphics/background_sheet.png");
 
     while (window.isOpen())
     {
         Event event;
         while (window.pollEvent(event))
         {
+
             if (event.type == Event::Closed)
             {
                 window.close();
@@ -87,12 +88,12 @@ int main(void)
                     }
 
                 } // end Playing game and key pressed section
+                // start Level Up section of key pressed
                 if (state == State::LEVEL_UP)
                 {
 
                     if (event.key.code == Keyboard::Num1)
                     {
-
                         state = State::PLAYING;
                     }
                     if (event.key.code == Keyboard::Num2)
@@ -123,15 +124,13 @@ int main(void)
                         arena.left = 0;
                         arena.top = 0;
 
-                        int tileSize = 50;
+                        int tileSize = createBackground(background, arena);
 
                         player.spawn(arena, resolution, tileSize);
                         clock.restart();
                     }
                 } // End leveling up section
             }
-
-            // Start leveling up section
 
             if (event.type == Event::KeyReleased)
             {
@@ -153,7 +152,6 @@ int main(void)
                     player.stopRight();
                 }
             }
-            // Start Leveling up section of keyPressed
 
         } // End polling events
           /**
@@ -173,10 +171,12 @@ int main(void)
             mouseWorldPosition = window.mapPixelToCoords(mouseScreenPosition, mainView);
 
             player.update(dtAsSeconds, Mouse::getPosition());
-            Vector2f playerPosition(player.getCenter());
 
+            Vector2f playerPosition(player.getCenter());
             mainView.setCenter(player.getCenter());
+
             window.setView(mainView);
+            window.draw(background, &texBackground);
             window.draw(player.getSprite());
         }
         if (state == State::LEVEL_UP)

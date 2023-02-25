@@ -1,4 +1,4 @@
-#include "zombie.h"
+#include "main.h"
 
 int createBackground(VertexArray &rVA, IntRect arena)
 {
@@ -18,13 +18,18 @@ int createBackground(VertexArray &rVA, IntRect arena)
     {
         for (int h = 0; h < worldHeight; h++)
         {
+            // This top section lays out the tilemap starting at 0,0
+            // then builds right then down
             rVA[currentVertex + 0].position = Vector2f(w * TILE_SIZE, h * TILE_SIZE);
             rVA[currentVertex + 1].position = Vector2f((w * TILE_SIZE) + TILE_SIZE, h * TILE_SIZE);
             rVA[currentVertex + 2].position = Vector2f((w * TILE_SIZE) + TILE_SIZE, (h * TILE_SIZE) + TILE_SIZE);
             rVA[currentVertex + 3].position = Vector2f((w * TILE_SIZE), (h * TILE_SIZE) + TILE_SIZE);
 
+            // Here I set the texture by drawing a quad around a specific portion
+            // of the spritesheets that is used for the floor pieces
             if (w == 0 || w == worldWidth - 1 || h == 0 || h == worldHeight - 1)
             {
+                // This section is wall
                 rVA[currentVertex + 0].texCoords = Vector2f(0, 0 + TILE_SIZE);
                 rVA[currentVertex + 1].texCoords = Vector2f(TILE_SIZE, 0 + TILE_TYPES * TILE_SIZE);
                 rVA[currentVertex + 2].texCoords = Vector2f(TILE_SIZE, TILE_SIZE + TILE_TYPES * TILE_SIZE);
@@ -32,6 +37,8 @@ int createBackground(VertexArray &rVA, IntRect arena)
             }
             else
             {
+                // morg = Mud or Grass
+                // The rest of the floor randomly picked
                 srand((int)time(0) + h * w - h);
                 int morg = (rand() % TILE_TYPES);
                 int verticalOffset = morg * TILE_SIZE;

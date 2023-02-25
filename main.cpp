@@ -1,4 +1,4 @@
-#include "zombie.h"
+#include "main.h"
 
 int main(void)
 {
@@ -126,6 +126,8 @@ int main(void)
 
                         int tileSize = createBackground(background, arena);
 
+                        // When we spawn the player it will be in the center of
+                        // the arena and we will center the mainView at the player
                         player.spawn(arena, resolution, tileSize);
                         clock.restart();
                     }
@@ -156,12 +158,15 @@ int main(void)
         } // End polling events
           /**
            * all code that goes before
-           * drawing sprites to scren
+           * drawing sprites to screen
            * place here.
            */
         window.clear();
+        // The code when actually playing the game portion for DRAWing and setting
+        // of POSITIONS
         if (state == State::PLAYING)
         {
+
             Time dt = clock.restart();
             gameTimeTotal += dt;
 
@@ -173,7 +178,52 @@ int main(void)
             player.update(dtAsSeconds, Mouse::getPosition());
 
             Vector2f playerPosition(player.getCenter());
-            mainView.setCenter(player.getCenter());
+            Vector2f mainViewCenter;
+
+            // This should be the start of the code to either move the world or the player
+            // It is not complete yet be cause it is only dealing with if the arena is bigger than
+            // the size of the view
+            if (arena.width > mainView.getSize().x)
+            {
+                if (playerPosition.x - (mainView.getSize().x / 2) <= 0)
+                {
+                    mainViewCenter.x = arena.left + (mainView.getSize().x / 2);
+                }
+                else if (playerPosition.x + (mainView.getSize().x / 2) >= arena.width)
+                {
+                    mainViewCenter.x = arena.width - (mainView.getSize().x / 2);
+                }
+                else
+                {
+                    mainViewCenter.x = playerPosition.x;
+                }
+            }
+            else if (arena.width <= mainView.getSize().x)
+            {
+                mainViewCenter.x = arena.width / 2;
+            }
+            // This is the Y section of centering the View around player or not.
+            if (arena.height > mainView.getSize().y)
+            {
+                if (playerPosition.y - (mainView.getSize().y / 2) <= 0)
+                {
+                    mainViewCenter.y = arena.top + (mainView.getSize().y / 2);
+                }
+                else if (playerPosition.y + (mainView.getSize().y / 2) >= arena.height)
+                {
+                    mainViewCenter.y = arena.height - (mainView.getSize().y / 2);
+                }
+                else
+                {
+                    mainViewCenter.y = playerPosition.y;
+                }
+            }
+            else if (arena.height <= mainView.getSize().y)
+            {
+                mainViewCenter.y = arena.height / 2;
+            }
+
+            mainView.setCenter(Vector2f(mainViewCenter.x, mainViewCenter.y));
 
             window.setView(mainView);
             window.draw(background, &texBackground);

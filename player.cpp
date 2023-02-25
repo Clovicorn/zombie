@@ -14,14 +14,20 @@ Player::Player()
 
 void Player::spawn(IntRect arena, Vector2f resolution, int tileSize)
 {
+    // Put player in center of the arena to start
     m_Position.x = arena.width / 2;
     m_Position.y = arena.height / 2;
+
+    // Save the arena sizes
     m_Arena.left = arena.left;
     m_Arena.top = arena.top;
     m_Arena.width = arena.width;
     m_Arena.height = arena.height;
 
+    // how many pixels are the tiles
     m_TileSize = tileSize;
+
+    // save screen resolution for internal use
     m_Resolution.x = resolution.x;
     m_Resolution.y = resolution.y;
 }

@@ -3,6 +3,8 @@
 #include <SFML/Graphics.hpp>
 #include <cmath>
 #include <iostream>
+#include "textureHolder.h"
+
 using namespace sf;
 
 class Player
@@ -56,7 +58,7 @@ public:
     void stopDown();
     void stopLeft();
 
-    void update(float elapsedTime, Vector2i mousePosition);
+    void update(float elapsedTime, Vector2f mousePosition);
     void upgradeSpeed();
     void upgradeHealth();
     void increaseHealthLevel(int amount);

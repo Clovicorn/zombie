@@ -6,8 +6,7 @@ Player::Player()
     m_Health = START_HEALTH;
     m_MaxHealth = START_HEALTH;
 
-    m_Texture.loadFromFile("assets/graphics/player2.png");
-    m_Sprite.setTexture(m_Texture);
+    m_Sprite = Sprite(TextureHolder::getTexture("assets/graphics/player2.png"));
 
     m_Sprite.setOrigin(25, 25);
 }
@@ -141,12 +140,12 @@ void Player::resetPlayerStats()
     m_Speed = START_SPEED;
 }
 
-void Player::update(float elapsedTime, Vector2i mousePosition)
+void Player::update(float elapsedTime, Vector2f mousePosition)
 {
     setMovement(elapsedTime);
-    // std::cout << m_Position.x << " " << m_Position.y << "\n";
 
-    float angle = (atan2(mousePosition.y - m_Resolution.y / 2, mousePosition.x - m_Resolution.x / 2) * 180) / 3.141;
+    float angle = (atan2(mousePosition.y - m_Position.y, mousePosition.x - m_Position.x) * 180) / 3.141;
+
     m_Sprite.setRotation(angle);
 }
 

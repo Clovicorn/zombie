@@ -9,6 +9,8 @@ int main(void)
         GAME_OVER,
         PLAYING
     };
+
+    TextureHolder holder;
     Vector2f resolution(1920, 1080);
     State state = State::GAME_OVER;
 
@@ -27,8 +29,19 @@ int main(void)
 
     IntRect arena;
     VertexArray background;
-    Texture texBackground;
-    texBackground.loadFromFile("assets/graphics/background_sheet.png");
+    Texture texBackground = TextureHolder::getTexture("assets/graphics/background_sheet.png");
+
+    int numZombies;
+    int numZombiesAlive;
+    Zombie *zombies = nullptr;
+
+    Bullet bullets[100];
+    int currentBullet = 0;
+    int bulletSpares = 24;
+    int bulletsInClip = 6;
+    int clipSize = 6;
+    float fireRate = 1;
+    Time lastPressed;
 
     while (window.isOpen())
     {
@@ -87,6 +100,21 @@ int main(void)
                         player.moveRight();
                     }
 
+                    if (event.key.code == Keyboard::R)
+                    {
+                        // Reload clip if there are spares and room in clip
+                        if (bulletSpares > 0 && (bulletsInClip < clipSize))
+                        {
+                            int bulletAmtToAdd = clipSize - bulletsInClip;
+                            if (bulletAmtToAdd > bulletSpares)
+                            {
+                                bulletAmtToAdd = bulletSpares;
+                            }
+                            bulletsInClip += bulletAmtToAdd;
+                            bulletSpares -= bulletAmtToAdd;
+                        }
+                    }
+
                 } // end Playing game and key pressed section
                 // start Level Up section of key pressed
                 if (state == State::LEVEL_UP)
@@ -129,6 +157,10 @@ int main(void)
                         // When we spawn the player it will be in the center of
                         // the arena and we will center the mainView at the player
                         player.spawn(arena, resolution, tileSize);
+                        numZombies = 10;
+                        delete[] zombies;
+                        zombies = createHorde(numZombies, arena);
+
                         clock.restart();
                     }
                 } // End leveling up section
@@ -136,22 +168,49 @@ int main(void)
 
             if (event.type == Event::KeyReleased)
             {
-                if (event.key.code == Keyboard::W)
+                if (state == State::PLAYING)
                 {
-                    player.stopUp();
-                }
-                if (event.key.code == Keyboard::S)
-                {
-                    player.stopDown();
-                }
+                    if (event.key.code == Keyboard::W)
+                    {
+                        player.stopUp();
+                    }
+                    if (event.key.code == Keyboard::S)
+                    {
+                        player.stopDown();
+                    }
 
-                if (event.key.code == Keyboard::A)
-                {
-                    player.stopLeft();
+                    if (event.key.code == Keyboard::A)
+                    {
+                        player.stopLeft();
+                    }
+                    if (event.key.code == Keyboard::D)
+                    {
+                        player.stopRight();
+                    }
                 }
-                if (event.key.code == Keyboard::D)
+            }
+
+            if (event.type == Event::MouseButtonPressed)
+            {
+                if (state == State::PLAYING)
                 {
-                    player.stopRight();
+                    if (event.mouseButton.button == Mouse::Left)
+                    {
+                        if (gameTimeTotal.asMilliseconds() - lastPressed.asMilliseconds() > 1000 / fireRate &&
+                            bulletsInClip > 0)
+                        {
+                            mouseScreenPosition = Mouse::getPosition();
+                            mouseWorldPosition = window.mapPixelToCoords(mouseScreenPosition, mainView);
+                            bullets[currentBullet].shoot(player.getCenter().x, player.getCenter().y, mouseWorldPosition.x, mouseWorldPosition.y);
+                            currentBullet++;
+                            if (currentBullet > 99)
+                            {
+                                currentBullet = 0;
+                            }
+                            lastPressed = gameTimeTotal;
+                            bulletsInClip--;
+                        }
+                    }
                 }
             }
 
@@ -175,7 +234,7 @@ int main(void)
             mouseScreenPosition = Mouse::getPosition();
             mouseWorldPosition = window.mapPixelToCoords(mouseScreenPosition, mainView);
 
-            player.update(dtAsSeconds, Mouse::getPosition());
+            player.update(dtAsSeconds, mouseWorldPosition);
 
             Vector2f playerPosition(player.getCenter());
             Vector2f mainViewCenter;
@@ -225,8 +284,36 @@ int main(void)
 
             mainView.setCenter(Vector2f(mainViewCenter.x, mainViewCenter.y));
 
+            // Move the zombies
+            for (int i = 0; i < numZombies; i++)
+            {
+                if (zombies[i].isAlive())
+                {
+                    zombies[i].update(dt.asSeconds(), playerPosition);
+                }
+            }
+
+            for (int i = 0; i < 100; i++)
+            {
+                if (bullets[i].isInFlight())
+                {
+                    bullets[i].update(dt.asSeconds());
+                }
+            }
             window.setView(mainView);
             window.draw(background, &texBackground);
+            // Draw zombies
+            for (int i = 0; i < numZombies; i++)
+            {
+                window.draw(zombies[i].getSprite());
+            }
+            for (int i = 0; i < 100; i++)
+            {
+                if (bullets[i].isInFlight())
+                {
+                    window.draw(bullets[i].getShape());
+                }
+            }
             window.draw(player.getSprite());
         }
         if (state == State::LEVEL_UP)
@@ -242,5 +329,6 @@ int main(void)
         window.display();
     } // End game loop
 
+    delete[] zombies;
     return 0;
 }

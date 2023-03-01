@@ -17,6 +17,9 @@ int main(void)
     VideoMode vm(1920, 1080);
     RenderWindow window(vm, "Zombie Killer!", Style::Fullscreen);
 
+    window.setMouseCursorVisible(true);
+    Sprite spriteCrosshair = Sprite(TextureHolder::getTexture("assets/graphics/crosshair1.png"));
+    spriteCrosshair.setOrigin(25, 25);
     View mainView(FloatRect(0, 0, 1920, 1080));
 
     Player player;
@@ -103,16 +106,7 @@ int main(void)
                     if (event.key.code == Keyboard::R)
                     {
                         // Reload clip if there are spares and room in clip
-                        if (bulletSpares > 0 && (bulletsInClip < clipSize))
-                        {
-                            int bulletAmtToAdd = clipSize - bulletsInClip;
-                            if (bulletAmtToAdd > bulletSpares)
-                            {
-                                bulletAmtToAdd = bulletSpares;
-                            }
-                            bulletsInClip += bulletAmtToAdd;
-                            bulletSpares -= bulletAmtToAdd;
-                        }
+                        std::tie(bulletsInClip, bulletSpares) = reload(bulletSpares, bulletsInClip, clipSize);
                     }
 
                 } // end Playing game and key pressed section
@@ -153,7 +147,7 @@ int main(void)
                         arena.top = 0;
 
                         int tileSize = createBackground(background, arena);
-
+                        window.setMouseCursorVisible(false);
                         // When we spawn the player it will be in the center of
                         // the arena and we will center the mainView at the player
                         player.spawn(arena, resolution, tileSize);
@@ -210,6 +204,10 @@ int main(void)
                             lastPressed = gameTimeTotal;
                             bulletsInClip--;
                         }
+                    }
+                    if (event.mouseButton.button == Mouse::Right)
+                    {
+                        std::tie(bulletsInClip, bulletSpares) = reload(bulletSpares, bulletsInClip, clipSize);
                     }
                 }
             }
@@ -300,6 +298,7 @@ int main(void)
                     bullets[i].update(dt.asSeconds());
                 }
             }
+            spriteCrosshair.setPosition(mouseWorldPosition.x, mouseWorldPosition.y);
             window.setView(mainView);
             window.draw(background, &texBackground);
             // Draw zombies
@@ -315,6 +314,7 @@ int main(void)
                 }
             }
             window.draw(player.getSprite());
+            window.draw(spriteCrosshair);
         }
         if (state == State::LEVEL_UP)
         {
@@ -329,6 +329,7 @@ int main(void)
         window.display();
     } // End game loop
 
+    window.setMouseCursorVisible(true);
     delete[] zombies;
     return 0;
 }

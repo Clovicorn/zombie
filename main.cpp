@@ -10,6 +10,9 @@ int main(void)
         PLAYING
     };
 
+    int score = 0;
+    int highScore = 0;
+
     TextureHolder holder;
     Vector2f resolution(1920, 1080);
     State state = State::GAME_OVER;
@@ -23,6 +26,8 @@ int main(void)
     View mainView(FloatRect(0, 0, 1920, 1080));
 
     Player player;
+    Pickup healthPickup(1);
+    Pickup ammoPickup(2);
 
     Clock clock;
     Time gameTimeTotal;
@@ -141,8 +146,8 @@ int main(void)
 
                     if (state == State::PLAYING)
                     {
-                        arena.width = 500;
-                        arena.height = 500;
+                        arena.width = 1000;
+                        arena.height = 1000;
                         arena.left = 0;
                         arena.top = 0;
 
@@ -151,9 +156,13 @@ int main(void)
                         // When we spawn the player it will be in the center of
                         // the arena and we will center the mainView at the player
                         player.spawn(arena, resolution, tileSize);
-                        numZombies = 10;
+                        healthPickup.setArena(arena);
+                        ammoPickup.setArena(arena);
+
                         delete[] zombies;
+                        numZombies = 10;
                         zombies = createHorde(numZombies, arena);
+                        numZombiesAlive = numZombies;
 
                         clock.restart();
                     }
@@ -283,11 +292,11 @@ int main(void)
             mainView.setCenter(Vector2f(mainViewCenter.x, mainViewCenter.y));
 
             // Move the zombies
-            for (int i = 0; i < numZombies; i++)
+            for (int z = 0; z < numZombies; z++)
             {
-                if (zombies[i].isAlive())
+                if (zombies[z].isAlive())
                 {
-                    zombies[i].update(dt.asSeconds(), playerPosition);
+                    zombies[z].update(dt.asSeconds(), playerPosition);
                 }
             }
 
@@ -298,20 +307,83 @@ int main(void)
                     bullets[i].update(dt.asSeconds());
                 }
             }
+            healthPickup.update(dt.asSeconds());
+            ammoPickup.update(dt.asSeconds());
+
+            // Collision detection time
+            // did we shoot a zombie?
+            for (int b = 0; b < 100; b++)
+            {
+                for (int z = 0; z < numZombies; z++)
+                {
+                    if (bullets[b].isInFlight() && zombies[z].isAlive())
+                    {
+                        if (bullets[b].getPosition().intersects(zombies[z].getPosition()))
+                        {
+                            bullets[b].stop();
+                            if (zombies[z].hit())
+                            {
+                                score += 10;
+                                if (score > highScore)
+                                {
+                                    highScore = score;
+                                }
+                                numZombiesAlive -= 1;
+                                if (numZombiesAlive <= 0)
+                                {
+                                    state = State::LEVEL_UP;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            // Did a zombie hit the player?
+            for (int z = 0; z < numZombies; z++)
+            {
+                if (player.getPosition().intersects(zombies[z].getPosition()) && zombies[z].isAlive())
+                {
+                    if (player.hit(gameTimeTotal))
+                    {
+                    }
+                    if (player.getHealth() <= 0)
+                    {
+                        state = State::GAME_OVER;
+                    }
+                }
+            }
+            // Did player get the Pickup?
+            if (player.getPosition().intersects(healthPickup.getPosition()) && healthPickup.isSpawned())
+            {
+                player.increaseHealthLevel(healthPickup.gotIt());
+            }
+            if (player.getPosition().intersects(ammoPickup.getPosition()) && ammoPickup.isSpawned())
+            {
+                bulletSpares += ammoPickup.gotIt();
+            }
+            // End Collision detection
             spriteCrosshair.setPosition(mouseWorldPosition.x, mouseWorldPosition.y);
             window.setView(mainView);
             window.draw(background, &texBackground);
             // Draw zombies
-            for (int i = 0; i < numZombies; i++)
+            for (int z = 0; z < numZombies; z++)
             {
-                window.draw(zombies[i].getSprite());
+                window.draw(zombies[z].getSprite());
             }
-            for (int i = 0; i < 100; i++)
+            for (int b = 0; b < 100; b++)
             {
-                if (bullets[i].isInFlight())
+                if (bullets[b].isInFlight())
                 {
-                    window.draw(bullets[i].getShape());
+                    window.draw(bullets[b].getShape());
                 }
+            }
+            if (ammoPickup.isSpawned())
+            {
+                window.draw(ammoPickup.getSprite());
+            }
+            if (healthPickup.isSpawned())
+            {
+                window.draw(healthPickup.getSprite());
             }
             window.draw(player.getSprite());
             window.draw(spriteCrosshair);
@@ -324,6 +396,7 @@ int main(void)
         }
         if (state == State::GAME_OVER)
         {
+            player.resetPlayerStats();
         }
         // Place window.draw code here
         window.display();

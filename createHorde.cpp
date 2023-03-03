@@ -5,16 +5,16 @@ Zombie *createHorde(int numZombies, IntRect arena)
 {
     Zombie *zombies = new Zombie[numZombies];
 
-    int minY = arena.height - 50;
-    int maxY = arena.top + 50;
+    int maxY = arena.height - 50;
+    int minY = arena.top + 50;
     int minX = arena.left + 50;
     int maxX = arena.width - 50;
-
     for (int i = 0; i < numZombies; i++)
     {
-        srand(int(time(0)) * i);
+        srand(((int)time(0)) * i);
         int side = (rand() % 4);
-        float x, y;
+        float x = 0;
+        float y = 0;
 
         switch (side)
         {
@@ -25,13 +25,13 @@ Zombie *createHorde(int numZombies, IntRect arena)
             break;
 
         case 1:
-            // left
+            // right
             x = maxX;
             y = (rand() % maxY) + minY;
             break;
 
         case 2:
-            // left
+            // top
             x = (rand() % maxX) + minX;
             y = minY;
             break;
@@ -45,6 +45,7 @@ Zombie *createHorde(int numZombies, IntRect arena)
         // create zombie type
         srand(int(time(0)) * i * 2);
         int type = (rand() % 3);
+
         zombies[i].spawn(x, y, type, i);
     }
     return zombies;

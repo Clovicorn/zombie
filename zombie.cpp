@@ -45,7 +45,7 @@ void Zombie::spawn(float startX, float startY, int type, int seed)
     case CRAWLER:
         m_Sprite = Sprite(TextureHolder::getTexture("assets/graphics/crawler.png"));
         m_Speed = CRAWLER_SPEED;
-        m_Health = CRAWLER_SPEED;
+        m_Health = CRAWLER_HEALTH;
         break;
     }
 
@@ -59,6 +59,7 @@ void Zombie::spawn(float startX, float startY, int type, int seed)
 
     m_Sprite.setOrigin(25, 25);
     m_Sprite.setPosition(m_Position);
+    m_Alive = true;
 }
 
 FloatRect Zombie::getPosition()
@@ -95,6 +96,7 @@ void Zombie::update(float elapsedTime, Vector2f playerLocation)
     }
 
     m_Sprite.setPosition(m_Position);
+
     float angle = (atan2(playerY - m_Position.y, playerX - m_Position.x) * 180) / 3.141;
     m_Sprite.setRotation(angle);
 }

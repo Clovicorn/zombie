@@ -2,6 +2,7 @@
 #include <SFML/Graphics.hpp>
 #include <tuple>
 #include "bullet.h"
+#include "pickup.h"
 #include "player.h"
 #include "zombie.h"
 

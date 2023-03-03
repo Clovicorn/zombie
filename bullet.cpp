@@ -43,7 +43,7 @@ void Bullet::shoot(float startX, float startY, float targetX, float targetY)
         m_DistanceY *= -1;
     }
 
-    float range = 1000;
+    float range = 500;
     m_MinX = startX - range;
     m_MaxX = startX + range;
     m_MinY = startY - range;

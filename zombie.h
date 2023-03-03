@@ -4,6 +4,7 @@
 #include "textureHolder.h"
 #include <cstdlib>
 #include <ctime>
+#include <iostream>
 
 using namespace sf;
 
